@@ -2,58 +2,57 @@ from database.connection import MongoDB
 from database.enums import Collections
 from faker import Faker
 from models import *
-from pymongo.database import Database
+
+faker = Faker(locale=["en_US", "pl_PL"])
+
+# use collections like this: passengers = client.passengers
+# then use insert_one or insert_many to insert data like: passengers.insert_one(data)
+# or if youre using a model, you can use insert_one or insert_many like this: passengers.insert_one(data.model_dump())
 
 
-def seed_passengers(db: Database, count: int):
+def seed_passengers(client: MongoDB, count: int):
+    passengers = client.passengers
+
+
+def seed_drivers(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_drivers(db: Database, count: int):
+def seed_editors(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_editors(db: Database, count: int):
+def seed_inspectors(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_inspectors(db: Database, count: int):
+def seed_vehicles(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_vehicles(db: Database, count: int):
+def seed_lines(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_lines(db: Database, count: int):
+def seed_rides(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_rides(db: Database, count: int):
+def seed_stops(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_stops(db: Database, count: int):
+def seed_ticket_types(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_ticket_types(db: Database, count: int):
+def seed_tickets(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_tickets(db: Database, count: int):
+def seed_fines(db: MongoDB, count: int):
     raise NotImplementedError
 
 
-def seed_fines(db: Database, count: int):
+def seed_inspections(db: MongoDB, count: int):
     raise NotImplementedError
-
-
-def seed_inspections(db: Database, count: int):
-    raise NotImplementedError
-
-
-def __check_collection(db: Database, collection: Collections):
-    if collection not in db.list_collection_names():
-        print(f"Collection {collection} not found. Creating collection.")
-        db.create_collection(collection)

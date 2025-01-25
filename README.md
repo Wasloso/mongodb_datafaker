@@ -9,6 +9,9 @@ To run a specific file, use the `-m` flag followed by the module path. For examp
 python -m models.fine.fine
 ```
 
+### ENV
+Make sure to set the `MONGO_URI` environment variable to the MongoDB connection string with valid username and password!
+
 
 ### Additional Information
 
@@ -16,3 +19,7 @@ python -m models.fine.fine
     ```sh
     pip install -r requirements.txt
     ```
+### TODO
+- [ ] Implement all models
+- [ ] Implement all seeder functions
+

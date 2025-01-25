@@ -1,3 +1,4 @@
+from pymongo.collection import Collection
 from database.connection import MongoDB
 from seeder.seed import (
     seed_passengers,
