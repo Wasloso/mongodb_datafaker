@@ -5,16 +5,18 @@ from models import *
 
 faker = Faker(locale=["en_US", "pl_PL"])
 
-# use collections like this: passengers = client.passengers
+# use collections like this: passengers = db.passengers
 # then use insert_one or insert_many to insert data like: passengers.insert_one(data)
 # or if youre using a model, you can use insert_one or insert_many like this: passengers.insert_one(data.model_dump())
 
 
-def seed_passengers(client: MongoDB, count: int):
-    passengers = client.passengers
+def seed_passengers(db: MongoDB, count: int):
+    passengers = db.passengers
+    raise NotImplementedError
 
 
 def seed_drivers(db: MongoDB, count: int):
+    editors = db.editors
     raise NotImplementedError
 
 
