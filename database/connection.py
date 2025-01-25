@@ -64,8 +64,7 @@ class MongoDB:
             print("Database connection is healthy.")
             return True
         except Exception as e:
-            print(f"Database connection is unhealthy: {e}")
-            return False
+            raise ConnectionError(f"Database connection failed: {e}")
 
     def __get_collection__(self, collection: Collections):
         if collection not in self.__db__.list_collection_names():
