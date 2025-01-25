@@ -2,6 +2,7 @@ from bson import ObjectId
 from models.enums import TicketStatus
 from models.model import Model
 from models.ticket.purchase import Purchase
+from models.ticket.validity_info import ValidityInfo
 
 
 class Ticket(Model):
