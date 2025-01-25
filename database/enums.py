@@ -14,4 +14,3 @@ class Collections(str, Enum):
     STOPS = "stops"
     TICKET_TYPES = "ticket_types"
     TICKETS = "tickets"
-    VEHICLES = "vehicles"
