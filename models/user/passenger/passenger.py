@@ -1,12 +1,15 @@
-from typing import Optional
+from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from models.default_config import DefaultConfig
+from models.fine.fine import UnpaidFine
+from models.ticket.ticket import ActiveTicket
 from models.user.user import User
 
 
 class Passenger(User):
-    pass
+    active_tickets: List[ActiveTicket] = Field(required=False, default=[])
+    unpaid_fines: List[UnpaidFine] = Field(required=False, default=[])
 
 
 class PassengerInfo(BaseModel):
