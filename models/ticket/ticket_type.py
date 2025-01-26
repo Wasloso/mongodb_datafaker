@@ -12,6 +12,12 @@ class TicketType(Model):
     duration: int = Field(gt=0, description="Must be greater than 0.")
     type: TicketPeriodType
 
+    def model_dump(self):
+        data = super().model_dump()
+        if isinstance(self.price, Price):
+            data["price"] = self.price.model_dump()
+        return data
+
 
 if __name__ == "__main__":
     my_ticket_type = TicketType(

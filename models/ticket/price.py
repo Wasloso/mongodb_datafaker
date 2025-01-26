@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from bson import Decimal128
+from pydantic import BaseModel, Field, field_validator
 
 
 class Price(BaseModel):
@@ -8,6 +9,20 @@ class Price(BaseModel):
     discounted: Optional[Decimal] = Field(
         ge=0.01, description="Must be greater than 0.", default=None
     )
+
+    @field_validator("normal", "discounted", mode="before")
+    def convert_decimal128_to_decimal(cls, value):
+        if isinstance(value, Decimal128):
+            return value.to_decimal()
+        return value
+
+    def model_dump(self):
+        data = {
+            "normal": Decimal128(str(self.normal)),
+        }
+        if self.discounted:
+            data["discounted"] = Decimal128(str(self.discounted))
+        return data
 
 
 if __name__ == "__main__":

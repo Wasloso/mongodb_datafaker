@@ -11,6 +11,7 @@ from .ticket.purchase import Purchase
 from .ticket.validity_info import ValidityInfo
 from .ticket.ticket_type import TicketType
 
+from .ticket.price import Price
 
 from .user.driver.driver import Driver
 from .user.driver.license import License
