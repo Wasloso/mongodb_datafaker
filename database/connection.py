@@ -6,6 +6,7 @@ from pymongo.database import Database
 from dotenv import load_dotenv
 from pathlib import Path
 from .enums import Collections
+from functools import cached_property
 
 
 class MongoDB:
@@ -71,50 +72,50 @@ class MongoDB:
             return self.__db__.create_collection(collection)
         return self.__db__.get_collection(collection)
 
-    @property
+    @cached_property
     def passengers(self) -> Collection:
         return self.__get_collection__(Collections.PASSENGERS)
 
-    @property
+    @cached_property
     def drivers(self) -> Collection:
         return self.__get_collection__(Collections.DRIVERS)
 
-    @property
+    @cached_property
     def editors(self) -> Collection:
         return self.__get_collection__(Collections.EDITORS)
 
-    @property
+    @cached_property
     def inspectors(self) -> Collection:
         return self.__get_collection__(Collections.INSPECTORS)
 
-    @property
+    @cached_property
     def vehicles(self) -> Collection:
         return self.__get_collection__(Collections.VEHICLES)
 
-    @property
+    @cached_property
     def lines(self) -> Collection:
         return self.__get_collection__(Collections.LINES)
 
-    @property
+    @cached_property
     def rides(self) -> Collection:
         return self.__get_collection__(Collections.RIDES)
 
-    @property
+    @cached_property
     def stops(self) -> Collection:
         return self.__get_collection__(Collections.STOPS)
 
-    @property
+    @cached_property
     def ticket_types(self) -> Collection:
         return self.__get_collection__(Collections.TICKET_TYPES)
 
-    @property
+    @cached_property
     def tickets(self) -> Collection:
         return self.__get_collection__(Collections.TICKETS)
 
-    @property
+    @cached_property
     def fines(self) -> Collection:
         return self.__get_collection__(Collections.FINES)
 
-    @property
+    @cached_property
     def inspections(self) -> Collection:
         return self.__get_collection__(Collections.INSPECTIONS)
