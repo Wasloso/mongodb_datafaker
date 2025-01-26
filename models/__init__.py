@@ -19,7 +19,7 @@ from .user.driver.license import License
 
 from .user.passenger.passenger import Passenger
 from .user.editor.editor import Editor
-from .user.inspector.inspector import Inspector
+from .user.inspector.inspector import Inspector, InspectorInfo
 from .user.contact import Contact
 
 from .vehicle.vehicle import Vehicle
