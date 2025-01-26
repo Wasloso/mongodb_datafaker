@@ -1,10 +1,15 @@
+from __future__ import annotations  # Enable forward references
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from bson import ObjectId
-from pydantic import Field
+from pydantic import BaseModel, Field
+from models.default_config import DefaultConfig
 from models.enums import FineStatus
 from models.model import Model
-from models.user.passenger.passenger import PassengerInfo
+
+if TYPE_CHECKING:
+    from models.user.passenger.passenger import PassengerInfo
 
 
 class Fine(Model):
@@ -14,6 +19,21 @@ class Fine(Model):
     amount: Decimal = Field(ge=0.01, multiple_of=0.01)
     issue_date: datetime
     deadline: datetime
+
+
+class UnpaidFine(BaseModel):
+    model_config = DefaultConfig.config
+    fine_id: ObjectId
+    amount: Decimal = Field(ge=0.01, multiple_of=0.01, required=False)
+    deadline: datetime = Field(required=False)
+
+    @classmethod
+    def from_fine(cls, fine: Fine) -> "UnpaidFine":
+        return cls(
+            fine_id=fine.id,
+            amount=fine.amount,
+            deadline=fine.deadline,
+        )
 
 
 if __name__ == "__main__":
@@ -29,4 +49,7 @@ if __name__ == "__main__":
         issue_date=datetime.now(),
     )
 
+    unpaid_fine = UnpaidFine.from_fine(fine)
+
     print(fine.model_dump())
+    print(unpaid_fine.model_dump())

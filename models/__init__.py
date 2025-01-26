@@ -1,4 +1,4 @@
-from .fine.fine import Fine
+from .fine.fine import Fine, UnpaidFine
 
 from .inspection.inspection import Inspection
 
@@ -8,10 +8,11 @@ from .line.pathItem import PathItem
 from .stop.stop import Stop
 from .stop.coords import Coords
 
-from .ticket.ticket import Ticket
+from .ticket.ticket import Ticket, ActiveTicket
 from .ticket.purchase import Purchase
 from .ticket.validity_info import ValidityInfo
 from .ticket.ticket_type import TicketType
+
 
 from .user.driver.driver import Driver
 from .user.driver.license import License
