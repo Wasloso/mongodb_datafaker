@@ -218,7 +218,30 @@ def seed_fines(db: MongoDB, count: int):
 
 
 def seed_inspections(db: MongoDB, count: int):
-    raise NotImplementedError
+    inspections_collection = db.inspections
+    inspectors = [
+        InspectorInfo.from_inspector(Inspector(**inspector))
+        for inspector in db.inspectors.find()
+    ]
+    if not inspectors:
+        print("No inspectors to seed inspections, skipping")
+        return
+    rides_ids = db.rides.distinct("_id")
+    if not rides_ids:
+        print("No rides to seed inspections, skipping")
+        return
+    total_added = 0
+    for i in range(count):
+        inspector = faker.random_element(inspectors)
+        ride_id = faker.random_element(rides_ids)
+        date = faker.date_this_decade()
+        inspection = Inspection(
+            inspector=inspector, ride_id=ride_id, inspection_date=date
+        )
+        result = inspections_collection.insert_one(inspection.model_dump())
+        if result.acknowledged:
+            total_added += 1
+        printProgressBar(i + 1, count, length=50, prefix="inspections")
 
 
 def __generate_user_data() -> Tuple[str, str, str, str, Contact]:
@@ -285,4 +308,4 @@ def printProgressBar(
 
 if __name__ == "__main__":
     db = MongoDB()
-    seed_rides(db, 10)
+    seed_inspections(db, 10)
