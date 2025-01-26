@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 import random
 from typing import List, Tuple
@@ -173,7 +173,7 @@ def seed_rides(db: MongoDB, count: int):
         vehicle_id = faker.random_element(vehicles_ids)
         driver_id = faker.random_element(drivers_ids)
         line_id = faker.random_element(lines_ids)
-        start_time = faker.date_this_decade()
+        start_time = faker.date_time_this_decade()
         weekday = faker.random_element(Weekday).value
         ride = Ride(
             vehicle_id=vehicle_id,
@@ -224,7 +224,7 @@ def seed_ticket_types(db: MongoDB, count: int):
         discounted_price = (
             normal_price / 2 if faker.boolean(chance_of_getting_true=90) else None
         )
-        duration = faker.random_int(min=1, max=1440)
+        duration = faker.random_int(min=1, max=365 * 1440)
         ticket_type = TicketType(
             name=name,
             price=Price(normal=normal_price, discounted=discounted_price),
@@ -251,14 +251,15 @@ def seed_tickets(db: MongoDB, count: int):
     if not lines or len(lines) < 3:
         print("No lines to seed tickets, skipping")
         return
-    rides = [Ride(**ride) for ride in db.rides.find()]
-    if not rides:
+    rides_ids = db.rides.distinct("_id")
+    if not rides_ids:
         print("No rides to seed tickets, skipping")
         return
-    stops = [Stop(**stop) for stop in db.stops.find()]
-    if not stops:
+    stops_ids = db.stops.distinct("_id")
+    if not stops_ids or len(stops_ids) < 2:
         print("No stops to seed tickets, skipping")
         return
+
     total_added = 0
     for i in range(count):
         ride_id: ObjectId | None = None
@@ -266,11 +267,18 @@ def seed_tickets(db: MongoDB, count: int):
         selected_lines: List[Line] | None = None
         ticket_type = faker.random_element(ticket_types)
         passenger = faker.random_element(passengers)
-        status = faker.random_element(TicketStatus).value
-        purchase_date = faker.date_this_decade()
+        purchase_date = faker.date_time_this_decade()
         amount_paid = ticket_type.price.normal
-        # raise NotImplementedError("Implement purchase model")
-        valid_untill = purchase_date + timedelta(minutes=ticket_type.duration)
+        valid_until = purchase_date + timedelta(minutes=ticket_type.duration)
+        status = (
+            TicketStatus.ACTIVE
+            if valid_until > datetime.now()
+            else (
+                TicketStatus.EXPIRED
+                if faker.boolean(chance_of_getting_true=98)
+                else TicketStatus.RETURNED
+            )
+        )
         match ticket_type.type:
             case TicketPeriodType.ALL:
                 pass
@@ -281,13 +289,13 @@ def seed_tickets(db: MongoDB, count: int):
                     stops_in_line = [pathitem.stop_id for pathitem in line.path]
                     selected_stops.extend(stops_in_line)
             case TicketPeriodType.PATH:
-                length = faker.random_int(min=2, max=len(stops) - 1)
-                stops = faker.random_sample(elements=stops, length=length)
+                length = faker.random_int(min=2, max=(len(stops_ids)))
+                selected_stops = faker.random_sample(elements=stops_ids, length=length)
             case TicketPeriodType.SINGLE:
-                ride_id = faker.random_element(rides).id
+                ride_id = faker.random_element(rides_ids)
 
         validity_info = ValidityInfo(
-            valid_untill=valid_untill,
+            valid_untill=valid_until,
             type=ticket_type.type,
             ride_id=ride_id,
             stops=selected_stops,
@@ -339,7 +347,7 @@ def seed_fines(db: MongoDB, count: int):
         passenger = faker.random_element(passengers)
         passenger_info = PassengerInfo.from_passenger(passenger)
         inspector_id = faker.random_element(inspectors_ids)
-        issue_date = faker.date_this_decade()
+        issue_date = faker.date_time_this_decade()
         status = faker.random_element(FineStatus).value
         amount = Decimal(faker.random_int(min=10, max=1000))
         fine = Fine(
@@ -381,7 +389,7 @@ def seed_inspections(db: MongoDB, count: int):
     for i in range(count):
         inspector = faker.random_element(inspectors)
         ride_id = faker.random_element(rides_ids)
-        date = faker.date_this_decade()
+        date = faker.date_time_this_decade()
         inspection = Inspection(inspector=inspector, ride_id=ride_id, date=date)
         result = inspections_collection.insert_one(inspection.model_dump())
         if result.acknowledged:
@@ -454,4 +462,4 @@ def printProgressBar(
 if __name__ == "__main__":
     db = MongoDB()
     # seed_tickets(db, 10)
-    seed_drivers(db, 100)
+    seed_tickets(db, 100)
