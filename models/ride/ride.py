@@ -1,21 +1,22 @@
 from models.model import Model
 from models.vehicle.vehicle import Vehicle
-from models.user.driver import driver
+from models.user.driver.driver import Driver
 from models.line.line import Line
 from models.default_config import DefaultConfig
 from decimal import Decimal
 from bson import Decimal128, ObjectId
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
-class RideModel(BaseModel):
+class Ride(BaseModel):
     model_config = DefaultConfig.config
     id: ObjectId = Field(alias="_id", required=False, default=None)
-    line: Line
-    vehicle: Vehicle
-    driver: driver
-    weekday: str = Field(required=False)
-    start_time: str = Field(required=False)
+    line_id: Line  = Field(required=True)
+    vehicle_id: Vehicle = Field(required=True)
+    driver_id: Driver = Field(required=True)
+    weekday: str = Field(required=True)
+    start_time: datetime= Field(required=True)
 
     def model_dump(
         self,

@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+import random
 from typing import List, Tuple
 
 from bson import ObjectId
@@ -7,6 +8,7 @@ from database.connection import MongoDB
 from database.enums import Collections
 from faker import Faker
 from models import *
+from models import line
 
 faker = Faker(locale=["en_US", "pl_PL"])
 
@@ -152,7 +154,6 @@ def seed_lines(db: MongoDB, count: int):
 
 
 def seed_rides(db: MongoDB, count: int):
-    raise NotImplementedError("Rides model not implemented yet")
     rides_collection = db.rides
     vehicles_ids = db.vehicles.distinct("_id")
     if not vehicles_ids:
@@ -166,6 +167,9 @@ def seed_rides(db: MongoDB, count: int):
     if not lines_ids:
         print("No lines to seed rides, skipping")
         return
+    drivers= [Driver(**driver) for driver in db.drivers.find()]
+    vehicles= [Vehicle(**vehicle) for vehicle in db.vehicles.find()]
+    lines= [Line(**line) for line in db.lines.find()]
     for i in range(count):
         vehicle_id = faker.random_element(vehicles_ids)
         driver_id = faker.random_element(drivers_ids)
@@ -173,9 +177,9 @@ def seed_rides(db: MongoDB, count: int):
         start_time = faker.date_this_decade()
         weekday = faker.random_element(Weekday).value
         ride = Ride(
-            vehicle_id=vehicle_id,
-            driver_id=driver_id,
-            line_id=line_id,
+            vehicle_id=faker.random_element(vehicles),
+            line_id=faker.random_element(lines),
+            driver_id=faker.random_element(drivers),
             start_time=start_time,
             weekday=weekday,
         )
@@ -452,4 +456,5 @@ def printProgressBar(
 
 if __name__ == "__main__":
     db = MongoDB()
-    seed_tickets(db, 10)
+    # seed_tickets(db, 10)
+    seed_rides(db, 10000)
