@@ -1,4 +1,5 @@
-from bson import ObjectId
+from decimal import Decimal
+from bson import Decimal128, ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
 from models.default_config import DefaultConfig
@@ -23,7 +24,8 @@ class Model(BaseModel):
         warnings=True,
         serialize_as_any=False
     ):
-        return super().model_dump(
+
+        data = super().model_dump(
             mode=mode,
             include=include,
             exclude=exclude,
@@ -36,3 +38,7 @@ class Model(BaseModel):
             warnings=warnings,
             serialize_as_any=serialize_as_any,
         )
+        for key, value in data.items():
+            if isinstance(value, Decimal):
+                data[key] = Decimal128(value)
+        return data
