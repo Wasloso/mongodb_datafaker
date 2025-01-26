@@ -25,7 +25,7 @@ class StopType(str, Enum):
 
 class TicketStatus(str, Enum):
     ACTIVE: str = "active"
-    USED: str = ("used",)
+    USED: str = "used"
     EXPIRED: str = "expired"
     RETURNED: str = "returned"
 
