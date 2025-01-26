@@ -44,6 +44,7 @@ def seed_drivers(db: MongoDB, count: int):
 
     drivers = db.drivers
     used_licenses = set(drivers.distinct("license.id_license"))
+
     total_added = 0
     for i in range(count):
         name, surname, login, password, contact = __generate_user_data()
@@ -155,6 +156,7 @@ def seed_lines(db: MongoDB, count: int):
 
 def seed_rides(db: MongoDB, count: int):
     rides_collection = db.rides
+    total_added = 0
     vehicles_ids = db.vehicles.distinct("_id")
     if not vehicles_ids:
         print("No vehicles to seed rides, skipping")
@@ -167,9 +169,6 @@ def seed_rides(db: MongoDB, count: int):
     if not lines_ids:
         print("No lines to seed rides, skipping")
         return
-    drivers= [Driver(**driver) for driver in db.drivers.find()]
-    vehicles= [Vehicle(**vehicle) for vehicle in db.vehicles.find()]
-    lines= [Line(**line) for line in db.lines.find()]
     for i in range(count):
         vehicle_id = faker.random_element(vehicles_ids)
         driver_id = faker.random_element(drivers_ids)
@@ -177,9 +176,9 @@ def seed_rides(db: MongoDB, count: int):
         start_time = faker.date_this_decade()
         weekday = faker.random_element(Weekday).value
         ride = Ride(
-            vehicle_id=faker.random_element(vehicles),
-            line_id=faker.random_element(lines),
-            driver_id=faker.random_element(drivers),
+            vehicle_id=vehicle_id,
+            line_id=line_id,
+            driver_id=driver_id,
             start_time=start_time,
             weekday=weekday,
         )
@@ -249,7 +248,7 @@ def seed_tickets(db: MongoDB, count: int):
         print("No passengers to seed tickets, skipping")
         return
     lines = [Line(**line) for line in db.lines.find()]
-    if not lines or len(lines) < 2:
+    if not lines or len(lines) < 3:
         print("No lines to seed tickets, skipping")
         return
     rides = [Ride(**ride) for ride in db.rides.find()]
@@ -383,9 +382,7 @@ def seed_inspections(db: MongoDB, count: int):
         inspector = faker.random_element(inspectors)
         ride_id = faker.random_element(rides_ids)
         date = faker.date_this_decade()
-        inspection = Inspection(
-            inspector=inspector, ride_id=ride_id, inspection_date=date
-        )
+        inspection = Inspection(inspector=inspector, ride_id=ride_id, date=date)
         result = inspections_collection.insert_one(inspection.model_dump())
         if result.acknowledged:
             total_added += 1
@@ -457,4 +454,4 @@ def printProgressBar(
 if __name__ == "__main__":
     db = MongoDB()
     # seed_tickets(db, 10)
-    seed_rides(db, 10000)
+    seed_drivers(db, 100)
