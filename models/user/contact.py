@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 class Contact(BaseModel):
     email: str = Field(pattern="^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
-    phone: Optional[str] = Field(pattern="[0-9]{9,15}", default=None)
+    phone: Optional[str] = Field(pattern="[0-9]{9,15}", required=False, default=None)
 
 
 if __name__ == "__main__":
