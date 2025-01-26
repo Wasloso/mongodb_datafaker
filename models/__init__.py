@@ -1,5 +1,3 @@
-from .fine.fine import Fine, UnpaidFine
-
 from .inspection.inspection import Inspection
 
 from .line.line import Line
@@ -18,6 +16,10 @@ from .user.driver.driver import Driver
 from .user.driver.license import License
 
 from .user.passenger.passenger import Passenger
+from .user.passenger.passenger_info import PassengerInfo
+from .fine.fine import Fine
+from .fine.unpaid_fine import UnpaidFine
+
 from .user.editor.editor import Editor
 from .user.inspector.inspector import Inspector, InspectorInfo
 from .user.contact import Contact
