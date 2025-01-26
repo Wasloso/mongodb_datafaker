@@ -1,6 +1,8 @@
 from datetime import timedelta
 from decimal import Decimal
 from typing import List, Tuple
+
+from bson import ObjectId
 from database.connection import MongoDB
 from database.enums import Collections
 from faker import Faker
@@ -207,11 +209,112 @@ def seed_stops(db: MongoDB, count: int):
 
 
 def seed_ticket_types(db: MongoDB, count: int):
-    raise NotImplementedError
+    ticket_types_collection = db.ticket_types
+    total_added = 0
+    for i in range(count):
+        name = faker.sentence(nb_words=3)
+        type = faker.random_element(TicketPeriodType).value
+        normal_price = Decimal(faker.random_int(min=2, max=450))
+        discounted_price = (
+            normal_price / 2 if faker.boolean(chance_of_getting_true=90) else None
+        )
+        duration = faker.random_int(min=1, max=1440)
+        ticket_type = TicketType(
+            name=name,
+            price=Price(normal=normal_price, discounted=discounted_price),
+            duration=duration,
+            type=type,
+        )
+        result = ticket_types_collection.insert_one(ticket_type.model_dump())
+        if result.acknowledged:
+            total_added += 1
+        printProgressBar(i + 1, count, length=50, prefix="ticket types")
 
 
 def seed_tickets(db: MongoDB, count: int):
-    raise NotImplementedError
+    tickets_collection = db.tickets
+    ticket_types = [TicketType(**ticket_type) for ticket_type in db.ticket_types.find()]
+    if not ticket_types:
+        print("No ticket types to seed tickets, skipping")
+        return
+    passengers = [Passenger(**passenger) for passenger in db.passengers.find()]
+    if not passengers:
+        print("No passengers to seed tickets, skipping")
+        return
+    lines = [Line(**line) for line in db.lines.find()]
+    if not lines or len(lines) < 2:
+        print("No lines to seed tickets, skipping")
+        return
+    rides = [Ride(**ride) for ride in db.rides.find()]
+    if not rides:
+        print("No rides to seed tickets, skipping")
+        return
+    stops = [Stop(**stop) for stop in db.stops.find()]
+    if not stops:
+        print("No stops to seed tickets, skipping")
+        return
+    total_added = 0
+    for i in range(count):
+        ride_id: ObjectId | None = None
+        selected_stops: List[Stop] | None = None
+        selected_lines: List[Line] | None = None
+        ticket_type = faker.random_element(ticket_types)
+        passenger = faker.random_element(passengers)
+        status = faker.random_element(TicketStatus).value
+        purchase_date = faker.date_this_decade()
+        amount_paid = ticket_type.price.normal
+        # raise NotImplementedError("Implement purchase model")
+        valid_untill = purchase_date + timedelta(minutes=ticket_type.duration)
+        match ticket_type.type:
+            case TicketPeriodType.ALL:
+                pass
+            case TicketPeriodType.TWOLINES:
+                selected_lines = faker.random_sample(elements=lines, length=2)
+                selected_stops = []
+                for line in selected_lines:
+                    stops_in_line = [pathitem.stop_id for pathitem in line.path]
+                    selected_stops.extend(stops_in_line)
+            case TicketPeriodType.PATH:
+                length = faker.random_int(min=2, max=len(stops) - 1)
+                stops = faker.random_sample(elements=stops, length=length)
+            case TicketPeriodType.SINGLE:
+                ride_id = faker.random_element(rides).id
+
+        validity_info = ValidityInfo(
+            valid_untill=valid_untill,
+            type=ticket_type.type,
+            ride_id=ride_id,
+            stops=selected_stops,
+            lines=selected_lines,
+        )
+        amount_paid = (
+            ticket_type.price.normal
+            if not ticket_type.price.discounted
+            else faker.random_element(
+                [ticket_type.price.normal, ticket_type.price.discounted]
+            )
+        )
+        purchase = Purchase(date=purchase_date, amount_paid=amount_paid)
+
+        ticket = Ticket(
+            ticket_type_id=ticket_type.id,
+            user_id=passenger.id,
+            status=status,
+            purchase=purchase,
+            validity_info=validity_info,
+        )
+        result = tickets_collection.insert_one(ticket.model_dump())
+        if result.acknowledged:
+            total_added += 1
+            if status == TicketStatus.ACTIVE:
+                ticket.id = result.inserted_id
+                active_ticket = ActiveTicket.from_ticket(ticket, ticket_type)
+                db.passengers.update_one(
+                    {"_id": passenger.id},
+                    {"$push": {"active_tickets": active_ticket.model_dump()}},
+                )
+
+        printProgressBar(i + 1, count, length=50, prefix="tickets")
 
 
 def seed_fines(db: MongoDB, count: int):
@@ -346,4 +449,4 @@ def printProgressBar(
 
 if __name__ == "__main__":
     db = MongoDB()
-    seed_fines(db, 10)
+    seed_tickets(db, 10)
