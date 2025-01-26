@@ -41,10 +41,13 @@ def seed_drivers(db: MongoDB, count: int):
     import uuid
 
     drivers = db.drivers
+    used_licenses = set(drivers.distinct("license.id_license"))
     total_added = 0
     for i in range(count):
         name, surname, login, password, contact = __generate_user_data()
-        id_license = str(uuid.uuid4())
+        while (id_license := str(uuid.uuid4())) in used_licenses:
+            pass
+        used_licenses.add(id_license)
         issue_date = faker.date_this_century()
         expiration_date = issue_date + timedelta(
             days=365 * faker.random_int(min=5, max=25)
