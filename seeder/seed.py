@@ -146,7 +146,37 @@ def seed_lines(db: MongoDB, count: int):
 
 
 def seed_rides(db: MongoDB, count: int):
-    raise NotImplementedError
+    raise NotImplementedError("Rides model not implemented yet")
+    rides_collection = db.rides
+    vehicles_ids = db.vehicles.distinct("_id")
+    if not vehicles_ids:
+        print("No vehicles to seed rides, skipping")
+        return
+    drivers_ids = db.drivers.distinct("_id")
+    if not drivers_ids:
+        print("No drivers to seed rides, skipping")
+        return
+    lines_ids = db.lines.distinct("_id")
+    if not lines_ids:
+        print("No lines to seed rides, skipping")
+        return
+    for i in range(count):
+        vehicle_id = faker.random_element(vehicles_ids)
+        driver_id = faker.random_element(drivers_ids)
+        line_id = faker.random_element(lines_ids)
+        start_time = faker.date_this_decade()
+        weekday = faker.random_element(Weekday).value
+        ride = Ride(
+            vehicle_id=vehicle_id,
+            driver_id=driver_id,
+            line_id=line_id,
+            start_time=start_time,
+            weekday=weekday,
+        )
+        result = rides_collection.insert_one(ride.model_dump())
+        if result.acknowledged:
+            total_added += 1
+        printProgressBar(i + 1, count, length=50, prefix="rides")
 
 
 def seed_stops(db: MongoDB, count: int):
@@ -255,4 +285,4 @@ def printProgressBar(
 
 if __name__ == "__main__":
     db = MongoDB()
-    seed_lines(db, 10)
+    seed_rides(db, 10)
