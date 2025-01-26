@@ -40,3 +40,13 @@ class TicketPeriodType(str, Enum):
 class FineStatus(str, Enum):
     PAID = "paid"
     UNPAID = "unpaid"
+
+
+class Weekday(str, Enum):
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
