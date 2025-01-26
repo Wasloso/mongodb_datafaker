@@ -6,7 +6,7 @@ from models.default_config import DefaultConfig
 
 class Model(BaseModel):
     model_config = DefaultConfig.config
-    id: ObjectId = Field(default_factory=ObjectId, alias="_id")
+    id: ObjectId = Field(alias="_id", required=False, default=None)
 
     def model_dump(
         self,
