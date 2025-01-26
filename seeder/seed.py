@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 from typing import List, Tuple
 from database.connection import MongoDB
 from database.enums import Collections
@@ -214,7 +215,44 @@ def seed_tickets(db: MongoDB, count: int):
 
 
 def seed_fines(db: MongoDB, count: int):
-    raise NotImplementedError
+
+    fines_collection = db.fines
+    passengers = [Passenger(**passenger) for passenger in db.passengers.find()]
+    if not passengers:
+        print("No passengers to seed fines, skipping")
+        return
+    inspectors_ids = db.inspectors.distinct("_id")
+    if not inspectors_ids:
+        print("No rides to seed fines, skipping")
+        return
+    total_added = 0
+    for i in range(count):
+        passenger = faker.random_element(passengers)
+        passenger_info = PassengerInfo.from_passenger(passenger)
+        inspector_id = faker.random_element(inspectors_ids)
+        issue_date = faker.date_this_decade()
+        status = faker.random_element(FineStatus).value
+        amount = Decimal(faker.random_int(min=10, max=1000))
+        fine = Fine(
+            passenger_info=passenger_info,
+            status=status,
+            issued_by=inspector_id,
+            issue_date=issue_date,
+            amount=amount,
+            deadline=issue_date + timedelta(days=30),
+        )
+        result = fines_collection.insert_one(fine.model_dump())
+
+        if result.acknowledged:
+            total_added += 1
+            if status == FineStatus.UNPAID:
+                fine.id = result.inserted_id
+                unpaid_fine = UnpaidFine.from_fine(fine)
+                db.passengers.update_one(
+                    {"_id": passenger.id},
+                    {"$push": {"unpaid_fines": unpaid_fine.model_dump()}},
+                )
+        printProgressBar(i + 1, count, length=50, prefix="fines")
 
 
 def seed_inspections(db: MongoDB, count: int):
@@ -308,4 +346,4 @@ def printProgressBar(
 
 if __name__ == "__main__":
     db = MongoDB()
-    seed_inspections(db, 10)
+    seed_fines(db, 10)
