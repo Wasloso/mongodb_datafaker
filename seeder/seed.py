@@ -237,6 +237,37 @@ def seed_ticket_types(db: MongoDB, count: int):
             total_added += 1
         printProgressBar(i + 1, count, length=50, prefix="ticket types")
 
+def seed_ticket_types_predefined(db: MongoDB):
+    ticket_types_collection = db.ticket_types
+    predefined_ticket_types = [
+        {"name": "Jednorazowy przejazd", "price": 4.0, "duration": 75, "type": "single"},
+        {"name": "Bilet 24-godzinny", "price": 15.0, "duration": 1440, "type": "time-based"},
+        {"name": "Bilet 48-godzinny", "price": 26.0, "duration": 2880, "type": "time-based"},
+        {"name": "Bilet 7-dniowy", "price": 60.0, "duration": 10080, "type": "time-based"},
+        {"name": "Karnet miesięczny", "price": 110.0, "duration": 43200, "type": "subscription"},
+        {"name": "Karnet kwartalny", "price": 280.0, "duration": 129600, "type": "subscription"},
+        {"name": "Bilet jednorazowy dla studenta", "price": 2.0, "duration": 75, "type": "single"},
+        {"name": "Karnet miesięczny dla studenta", "price": 55.0, "duration": 43200, "type": "subscription"},
+        {"name": "Bilet dla seniora", "price": 2.0, "duration": 75, "type": "single"},
+        {"name": "Bilet grupowy (5 osób)", "price": 20.0, "duration": 75, "type": "group"},
+    ]
+    
+    total_added = 0
+    for ticket in predefined_ticket_types:
+        ticket_type = TicketType(
+            name=ticket["name"],
+            price=Price(normal=Decimal(ticket["price"]), discounted=None),
+            duration=ticket["duration"],
+            type=ticket["type"],
+        )
+        result = ticket_types_collection.insert_one(ticket_type.model_dump())
+        if result.acknowledged:
+            total_added += 1
+        print(f"Dodano typ biletu: {ticket['name']}")
+
+    print(f"Łączna liczba dodanych typów biletów: {total_added}")
+
+
 
 def seed_tickets(db: MongoDB, count: int):
     tickets_collection = db.tickets
