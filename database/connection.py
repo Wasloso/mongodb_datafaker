@@ -52,7 +52,7 @@ class MongoDB:
             collections = self.__db__.list_collection_names()
         else:
             collections = [collection.value for collection in collections]
-        for collection_name in collection:
+        for collection_name in collections:
             collection = self.__db__.get_collection(collection_name)
             deleted_count = collection.delete_many({}).deleted_count
             print(

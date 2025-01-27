@@ -16,6 +16,12 @@ class Ticket(Model):
     status: TicketStatus
     validity_info: ValidityInfo
 
+    def model_dump(self):
+        data = super().model_dump()
+        if isinstance(self.purchase, Purchase):
+            data["purchase"] = self.purchase.model_dump()
+        return data
+
 
 class ActiveTicket(BaseModel):
     model_config = DefaultConfig.config

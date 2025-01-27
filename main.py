@@ -19,18 +19,18 @@ from seeder.seed import (
 def main():
     db: MongoDB = MongoDB()
     seed_config = {
-        seed_vehicles: 10,
-        seed_passengers: 10,
-        seed_drivers: 10,
+        seed_vehicles: 100,
+        seed_passengers: 5000,
+        seed_drivers: 250,
         seed_editors: 10,
-        seed_inspectors: 10,
-        seed_stops: 10,
-        seed_lines: 10,
-        seed_rides: 10,
+        seed_inspectors: 100,
+        seed_stops: 250,
+        seed_lines: 100,
+        seed_rides: 10000,
         seed_ticket_types: 10,
-        seed_tickets: 10,
-        seed_inspections: 10,
-        seed_fines: 10,
+        seed_tickets: 10000,
+        seed_inspections: 2500,
+        seed_fines: 3500,
     }
     for seed_function, count in seed_config.items():
         if count > 0:
