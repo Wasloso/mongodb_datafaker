@@ -139,13 +139,36 @@ ticket_ranking = passengers_collection.aggregate([
     }
 ])
 
+rides= db["rides"]
+most_rode_lines = rides.aggregate([
+    {
+        "$group": {
+            "_id": "$line_id",  
+            "total_rides": {"$sum": 1}  
+        }
+    },
+    {
+        "$sort": {"total_rides": -1} 
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "line_id": "$_id",
+            "total_rides": 1
+        }
+    },
+    {
+        "$limit": 10
+    }
+])
+
 print("Drivers with expired licenses:")
 for driver in expired_drivers:
     print(driver)
 
-print("\nMonthly income:")
-for entry in monthly_income:
-    print(entry)
+# print("\nMonthly income:")
+# for entry in monthly_income:
+#     print(entry)
 
 print("\nVehicles with issues:")
 for vehicle in vehicles_with_issues:
@@ -158,3 +181,7 @@ for passenger in overdue_fines:
 print("\nTicket ranking:")
 for ticket in ticket_ranking:
     print(ticket)
+
+print("\nMost rode lines:")
+for line in most_rode_lines:
+    print(line)
