@@ -114,3 +114,38 @@ tickets
     },
   },
 ]
+
+5. Użytkownicy, którzy nie kupili biletu w ciągu ostatnich 3 lat
+
+passengers
+[
+  {$lookup: {
+    from: "tickets",
+    localField: "_id",
+    foreignField: "user_id",
+    as: "passenger_tickets"
+  }},
+
+  {
+    $unwind: {
+      path: "$passenger_tickets",
+      preserveNullAndEmptyArrays: true
+    }
+  },
+  {
+    $match: {
+      $or: [
+        { "passenger_tickets": { $exists: false } },
+        { "passenger_tickets.purchase.date": { $lt: new Date(new Date().setFullYear(new Date().getFullYear() - 3)) } }
+      ]
+    }
+  },
+   {
+    $project: {
+      _id: 1,
+      name: 1,
+      surname: 1,
+      login: 1
+    }
+  }
+]
