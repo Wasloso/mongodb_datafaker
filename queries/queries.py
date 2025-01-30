@@ -162,6 +162,32 @@ most_rode_lines = rides.aggregate([
     }
 ])
 
+drivers_with_longest_licenses = drivers_collection.aggregate([
+    {
+        "$match": {
+            "license.expires_on": {"$gt": datetime.utcnow()}
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "name": "$user.name",
+            "surname": "$user.surname",
+            "id_driver": 1,
+            "issued_on": "$license.issued_on",
+            "license_duration": {"$subtract": [now, "$license.issued_on"]}
+        }
+    },
+    {
+        "$sort": {
+            "license_duration": -1
+        }
+    },
+    {
+        "$limit": 5
+    }
+])
+
 print("Drivers with expired licenses:")
 for driver in expired_drivers:
     print(driver)
@@ -185,3 +211,7 @@ for ticket in ticket_ranking:
 print("\nMost rode lines:")
 for line in most_rode_lines:
     print(line)
+
+print("\nDrivers with longest licenses:")
+for driver in drivers_with_longest_licenses:
+    print(driver)
