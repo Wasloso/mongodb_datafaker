@@ -16,6 +16,20 @@ class Vehicle(Model):
     air_conditioning: bool
     technial_issues: Optional[List[TechnicalIssue]] = Field(default=None)
 
+    @field_validator("technial_issues", mode="before")
+    def convert_technical_issues(cls, value):
+        if value is None:
+            return []
+        return value
+
+    def model_dump(self):
+        data = super().model_dump()
+        if self.technial_issues:
+            data["technial_issues"] = [
+                issue.model_dump() for issue in self.technial_issues
+            ]
+        return data
+
 
 if __name__ == "__main__":
     my_vehicle = Vehicle(

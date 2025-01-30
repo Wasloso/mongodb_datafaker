@@ -13,25 +13,30 @@ from seeder.seed import (
     seed_tickets,
     seed_fines,
     seed_inspections,
+    seed_tech_issues,
+    seed_ticket_types_predefined,
 )
 
 
 def main():
     db: MongoDB = MongoDB()
     seed_config = {
-        seed_vehicles: 100,
-        seed_passengers: 5000,
-        seed_drivers: 250,
+        seed_vehicles: 750,
+        seed_passengers: 10000,
+        seed_drivers: 2500,
         seed_editors: 10,
-        seed_inspectors: 100,
-        seed_stops: 250,
-        seed_lines: 100,
-        seed_rides: 10000,
-        seed_ticket_types: 10,
-        seed_tickets: 10000,
+        seed_inspectors: 250,
+        seed_stops: 500,
+        seed_lines: 250,
+        seed_rides: 5000,
+        seed_ticket_types_predefined: 1,
+        seed_tickets: 5000,
         seed_inspections: 2500,
-        seed_fines: 3500,
+        seed_fines: 5000,
+        seed_tech_issues: 1000,
     }
+    db.clear_database()
+
     for seed_function, count in seed_config.items():
         if count > 0:
             seed_function(db, count)
