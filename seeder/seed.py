@@ -319,7 +319,7 @@ def seed_ticket_types_predefined(db: MongoDB, count: int):
 
 
 def seed_tech_issues(db: MongoDB, count: int):
-    vehicles_ids = [db.vehicles.distinct("_id")]
+    vehicles_ids = db.vehicles.distinct("_id")
     if not vehicles_ids:
         print("No vehicles to seed technical issues, skipping")
         return
@@ -343,10 +343,13 @@ def seed_tech_issues(db: MongoDB, count: int):
             status=status,
             repair_cost=repair_cost,
         )
-        db.vehicles.update_one(
+        result = db.vehicles.update_one(
             {"_id": vehicle_id},
             {"$push": {"technical_issues": technical_issue.model_dump()}},
         )
+        if result.acknowledged:
+            total_added += 1
+        printProgressBar(i + 1, count, length=50, prefix="technical issues")
 
 
 def seed_tickets(db: MongoDB, count: int):
@@ -574,4 +577,4 @@ def printProgressBar(
 if __name__ == "__main__":
     db = MongoDB()
     # seed_tickets(db, 10)
-    seed_vehicles(db, 10)
+    seed_tech_issues(db, 10)
