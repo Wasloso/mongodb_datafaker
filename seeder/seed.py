@@ -289,7 +289,7 @@ def seed_tickets(db: MongoDB, count: int):
                     stops_in_line = [pathitem.stop_id for pathitem in line.path]
                     selected_stops.extend(stops_in_line)
             case TicketPeriodType.PATH:
-                length = faker.random_int(min=2, max=(len(stops_ids)))
+                length = faker.random_int(min=2, max=min(35, len(stops_ids)))
                 selected_stops = faker.random_sample(elements=stops_ids, length=length)
             case TicketPeriodType.SINGLE:
                 ride_id = faker.random_element(rides_ids)
@@ -412,7 +412,7 @@ def __generate_user_data() -> Tuple[str, str, str, str, Contact]:
 
 def __generate_path(stops: List[Stop]) -> List[PathItem]:
     path = []
-    length = faker.random_int(min=2, max=len(stops) - 1)
+    length = faker.random_int(min=2, max=min(35, len(stops)))
     minute = 0
     randomized_stops = faker.random_sample(elements=stops, length=length)
 
