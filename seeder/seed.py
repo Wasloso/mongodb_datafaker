@@ -112,6 +112,9 @@ def seed_vehicles(db: MongoDB, count: int):
         vehicle_type = faker.random_element(VehicleType).value
         air_conditioning = faker.boolean(chance_of_getting_true=70)
         status = faker.random_element(VehicleStatus).value
+        last_technical_inspection = faker.date_time_between_dates(
+            datetime_start=production_date, datetime_end=datetime.now()
+        )
         vehicle = Vehicle(
             number=number,
             capacity=capacity,
@@ -120,6 +123,7 @@ def seed_vehicles(db: MongoDB, count: int):
             air_conditioning=air_conditioning,
             type=vehicle_type,
             status=status,
+            last_technical_inspection=last_technical_inspection,
         )
         result = vehicles_collection.insert_one(vehicle.model_dump())
         if result.acknowledged:
@@ -570,4 +574,4 @@ def printProgressBar(
 if __name__ == "__main__":
     db = MongoDB()
     # seed_tickets(db, 10)
-    seed_tech_issues(db, 10)
+    seed_vehicles(db, 10)

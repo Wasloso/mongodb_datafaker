@@ -14,6 +14,7 @@ class Vehicle(Model):
     type: VehicleType
     status: VehicleStatus
     air_conditioning: bool
+    last_technical_inspection: datetime
     technial_issues: Optional[List[TechnicalIssue]] = Field(default=None)
 
     @field_validator("technial_issues", mode="before")
