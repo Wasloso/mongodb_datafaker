@@ -1,0 +1,116 @@
+ Suma mandatów dla każdego inspektora
+
+inspectors
+[
+  {
+    $lookup: {
+      from: "fines",
+      localField: "_id",
+      foreignField: "issued_by",
+      as: "inspector_fines"
+    }
+  },
+  { $unwind: "$inspector_fines" },
+  {
+    $match: {
+      "inspector_fines.issue_date": { $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) }
+    }
+  },
+
+  {
+    $group: {
+      _id: { id_inspector: "$_id", name: "$name", surname: "$surname" },
+      fines_sum: { $sum: { $ifNull: ["$inspector_fines.amount", 0] } }
+    }
+  },
+  { $sort: { fines_sum: -1 } }
+]
+
+2. Liczba linii przechodzących przez każdy przystanek
+
+lines
+[
+  { $unwind: "$path" },
+  {
+    $lookup: {
+      from: "stops",
+      localField: "path.stop_id",
+      foreignField: "_id",
+      as: "stops_info"
+    }
+  },
+  { $unwind: "$stops_info" },
+  {
+    $group: {
+      _id: { id_stop: "$stops_info._id", name: "$stops_info.name" },
+      lines_passing_through: { $sum: 1 }
+    }
+  },
+  { $sort: { lines_passing_through: -1 } }
+]
+
+3. Liczba przejazdów na pojazd
+
+rides
+[
+  {
+    $lookup: {
+      from: "vehicles",
+      localField: "vehicle_id",
+      foreignField: "_id",
+      as: "vehicle_info",
+    },
+  },
+  { $unwind: "$vehicle_info"},
+  {
+    $group: {
+      _id: {
+        id_vehicle: "$vehicle_id",
+        vehicle_number: "$vehicle_info.number",
+        type: "$vehicle_info.type",
+      },
+      number_of_rides: {
+        $sum: 1,
+      },
+    },
+  },
+  {
+    $sort: {
+      number_of_rides: -1,
+    },
+  },
+]
+
+4. Suma kosztów biletów dla pasażera
+
+tickets
+[
+  {
+    $lookup: {
+      from: "passengers",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "owners",
+    },
+  },
+  {
+    $unwind: "$owners",
+  },
+  {
+    $group: {
+      _id: {
+        id_passenger: "$owners._id",
+        name: "$owners.name",
+        login: "$owners.login",
+      },
+      cost_sum: {
+        $sum: "$purchase.amount_paid",
+      },
+    },
+  },
+  {
+    $sort: {
+      cost_sum: -1,
+    },
+  },
+]
