@@ -112,6 +112,9 @@ def seed_vehicles(db: MongoDB, count: int):
         vehicle_type = faker.random_element(VehicleType).value
         air_conditioning = faker.boolean(chance_of_getting_true=70)
         status = faker.random_element(VehicleStatus).value
+        last_technical_inspection = faker.date_time_between_dates(
+            datetime_start=production_date, datetime_end=datetime.now()
+        )
         vehicle = Vehicle(
             number=number,
             capacity=capacity,
@@ -120,6 +123,7 @@ def seed_vehicles(db: MongoDB, count: int):
             air_conditioning=air_conditioning,
             type=vehicle_type,
             status=status,
+            last_technical_inspection=last_technical_inspection,
         )
         result = vehicles_collection.insert_one(vehicle.model_dump())
         if result.acknowledged:
@@ -236,30 +240,73 @@ def seed_ticket_types(db: MongoDB, count: int):
             total_added += 1
         printProgressBar(i + 1, count, length=50, prefix="ticket types")
 
-def seed_ticket_types_predefined(db: MongoDB):
+
+def seed_ticket_types_predefined(db: MongoDB, count: int):
     ticket_types_collection = db.ticket_types
     predefined_ticket_types = [
-        {"name": "Jednorazowy przejazd", "price": 4.0, "duration": 75, "type": "one-way"},
+        {
+            "name": "Jednorazowy przejazd",
+            "price": 4.0,
+            "duration": 75,
+            "type": "one-way",
+        },
         {"name": "Bilet 24-godzinny", "price": 15.0, "duration": 1440, "type": "all"},
         {"name": "Bilet 48-godzinny", "price": 26.0, "duration": 2880, "type": "all"},
         {"name": "Bilet 7-dniowy", "price": 60.0, "duration": 10080, "type": "all"},
         {"name": "Karnet miesięczny", "price": 110.0, "duration": 43200, "type": "all"},
         {"name": "Karnet kwartalny", "price": 280.0, "duration": 129600, "type": "all"},
-        {"name": "Bilet jednorazowy dla studenta", "price": 2.0, "duration": 75, "type": "one-way"},
-        {"name": "Karnet miesięczny dla studenta", "price": 55.0, "duration": 43200, "type": "all"},
+        {
+            "name": "Bilet jednorazowy dla studenta",
+            "price": 2.0,
+            "duration": 75,
+            "type": "one-way",
+        },
+        {
+            "name": "Karnet miesięczny dla studenta",
+            "price": 55.0,
+            "duration": 43200,
+            "type": "all",
+        },
         {"name": "Bilet dla seniora", "price": 2.0, "duration": 75, "type": "one-way"},
-        {"name": "Bilet na wybrane dwie linie", "price": 6.0, "duration": 75, "type": "two-lines"},
-        {"name": "Bilet na wybraną trasę", "price": 5.0, "duration": 75, "type": "path"},
-        {"name": "Bilet na wybraną trasę dla studenta", "price": 3.0, "duration": 75, "type": "path"},
-        {"name": "Bilet na wybraną trasę dla seniora", "price": 3.0, "duration": 75, "type": "path"},
-        {"name": "Bilet na wybrane dwie linie dla studenta", "price": 5.0, "duration": 75, "type": "two-lines"},
+        {
+            "name": "Bilet na wybrane dwie linie",
+            "price": 6.0,
+            "duration": 75,
+            "type": "two-lines",
+        },
+        {
+            "name": "Bilet na wybraną trasę",
+            "price": 5.0,
+            "duration": 75,
+            "type": "path",
+        },
+        {
+            "name": "Bilet na wybraną trasę dla studenta",
+            "price": 3.0,
+            "duration": 75,
+            "type": "path",
+        },
+        {
+            "name": "Bilet na wybraną trasę dla seniora",
+            "price": 3.0,
+            "duration": 75,
+            "type": "path",
+        },
+        {
+            "name": "Bilet na wybrane dwie linie dla studenta",
+            "price": 5.0,
+            "duration": 75,
+            "type": "two-lines",
+        },
     ]
-    
+
     total_added = 0
     for ticket in predefined_ticket_types:
         ticket_type = TicketType(
             name=ticket["name"],
-            price=Price(normal=Decimal(ticket["price"]), discounted=None),
+            price=Price(
+                normal=Decimal(ticket["price"]), discounted=Decimal(ticket["price"]) / 2
+            ),
             duration=ticket["duration"],
             type=ticket["type"],
         )
@@ -270,6 +317,39 @@ def seed_ticket_types_predefined(db: MongoDB):
 
     print(f"Łączna liczba dodanych typów biletów: {total_added}")
 
+
+def seed_tech_issues(db: MongoDB, count: int):
+    vehicles_ids = db.vehicles.distinct("_id")
+    if not vehicles_ids:
+        print("No vehicles to seed technical issues, skipping")
+        return
+    total_added = 0
+    for i in range(count):
+        description = faker.sentence(nb_words=10)
+        report_date = faker.date_time_this_decade()
+        status = faker.random_element(TechnicalIssueStatus).value
+        if status == TechnicalIssueStatus.RESOLVED:
+            resolve_date = report_date + timedelta(days=faker.random_int(min=1, max=30))
+            repair_cost = Decimal(faker.random_int(min=10, max=1000))
+        else:
+            resolve_date = None
+            repair_cost = None
+        vehicle_id = faker.random_element(vehicles_ids)
+
+        technical_issue = TechnicalIssue(
+            description=description,
+            report_date=report_date,
+            resolve_date=resolve_date,
+            status=status,
+            repair_cost=repair_cost,
+        )
+        result = db.vehicles.update_one(
+            {"_id": vehicle_id},
+            {"$push": {"technical_issues": technical_issue.model_dump()}},
+        )
+        if result.acknowledged:
+            total_added += 1
+        printProgressBar(i + 1, count, length=50, prefix="technical issues")
 
 
 def seed_tickets(db: MongoDB, count: int):
@@ -324,7 +404,7 @@ def seed_tickets(db: MongoDB, count: int):
                     stops_in_line = [pathitem.stop_id for pathitem in line.path]
                     selected_stops.extend(stops_in_line)
             case TicketPeriodType.PATH:
-                length = faker.random_int(min=2, max=(len(stops_ids)))
+                length = faker.random_int(min=2, max=min(35, len(stops_ids)))
                 selected_stops = faker.random_sample(elements=stops_ids, length=length)
             case TicketPeriodType.SINGLE:
                 ride_id = faker.random_element(rides_ids)
@@ -447,7 +527,7 @@ def __generate_user_data() -> Tuple[str, str, str, str, Contact]:
 
 def __generate_path(stops: List[Stop]) -> List[PathItem]:
     path = []
-    length = faker.random_int(min=2, max=len(stops) - 1)
+    length = faker.random_int(min=2, max=min(35, len(stops)))
     minute = 0
     randomized_stops = faker.random_sample(elements=stops, length=length)
 
@@ -497,4 +577,4 @@ def printProgressBar(
 if __name__ == "__main__":
     db = MongoDB()
     # seed_tickets(db, 10)
-    seed_tickets(db, 100)
+    seed_tech_issues(db, 10)
